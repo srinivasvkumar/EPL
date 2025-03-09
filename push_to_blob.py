@@ -39,15 +39,16 @@ def to_blob(func):
         session = boto3.Session(profile_name='srinivasvkumar')
         credentials = session.get_credentials()
 
-        '''print("Credentials obtained")
+        print("Credentials obtained")
         print(f"AWS_ACCESS_KEY_ID = {credentials.access_key}")
         print(f"AWS_SECRET_ACCESS_KEY = {credentials.secret_key}")
         print(f"AWS_SESSION_TOKEN = {credentials.token}")
-        '''
+
         s3 = session.client('s3')
 
         # Upload the Parquet data directly from the buffer
-       # s3.upload_fileobj(pa.BufferReader(parquet_buffer.getvalue()), 'srinivasepl', s3_file)
+        s3.upload_fileobj(pa.BufferReader(
+            parquet_buffer.getvalue()), 'srinivasepl', s3_file)
         print(f"File uploaded to S3: {s3_file}")
 
     except Exception as e:
