@@ -23,6 +23,7 @@ def league_table():
         league_table.loc[length] = row
     league_table.drop(["Form, Last 6 games, Oldest first"],
                       axis=1, inplace=True)
+    print(league_table)
     return league_table
 
 
@@ -58,7 +59,7 @@ def top_scorers():
         lambda x: 'Manchester United' if 'Manchester United' in x else x)
     top_scorers.Club = top_scorers.Club.apply(
         lambda x: 'Brighton & Hove Albion' if 'Brighton & Hove Albion' in x else x)
-
+    print(top_scorers)
     return top_scorers
 
 
@@ -92,6 +93,7 @@ def detail_top():
     detail_top_scorer.rename(
         columns={'Goals (Penalty)': 'Goals'}, inplace=True)
     detail_top_scorer = detail_top_scorer.drop(['#'], axis=1)
+    print(detail_top_scorer)
     return detail_top_scorer
 
 
@@ -124,6 +126,7 @@ def player_table():
         df = pd.concat([df, a], axis=0).reset_index(drop=True)
 
     df = df.drop([''], axis=1)
+    print(df)
     return df
 
 
@@ -144,6 +147,7 @@ def all_time_table():
 
     alltime_table = alltime_table.drop(['#'], axis=1)
     alltime_table.Team = alltime_table.Team.str.replace('\n', '')
+    print(all_time_table)
     return alltime_table
 
 
@@ -166,6 +170,7 @@ def all_time_winner_club():
 
     winners = winners.drop([''], axis=1)
     winners['Year'] = winners['Year'].str.replace('\n', '')
+    print(winners)
     return winners
 
 
@@ -185,6 +190,7 @@ def top_scorers_seasons():
     winners = winners.drop(['#'], axis=1)
     winners = winners.replace('\\n', '', regex=True).astype(str)
     winners['Season'] = winners['Season'].replace('', np.nan).ffill()
+    print(winners)
     return winners
 
 
@@ -209,5 +215,5 @@ def goals_per_season():
     goals_per_season = goals_per_season.drop(['#'], axis=1)
     goals_per_season.rename(
         columns={'goals': 'Goals', 'Ø goals': 'Average Goals'}, inplace=True)
-
+    print(goals_per_season)
     return goals_per_season
