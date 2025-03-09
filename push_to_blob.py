@@ -4,50 +4,57 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from io import BytesIO
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
-#from dotenv import load_dotenv
+import boto3
+import configparser
+# from dotenv import load_dotenv
 import os
 
-#load_dotenv()
+# load_dotenv()
 
-functions = [league_table,top_scorers,detail_top,player_table,all_time_table,all_time_winner_club,top_scorers_seasons,goals_per_season]
+functions = [league_table, top_scorers, detail_top, player_table,
+             all_time_table, all_time_winner_club, top_scorers_seasons, goals_per_season]
+
 
 def to_blob(func):
+    try:
+        print("Started")
+        file_name = func.__name__
+        df = func()  # Get the DataFrame result from the function
 
-    '''
-    Converts the output of a given function to Parquet format and uploads it to Azure Blob Storage.
-    Args:
-        func (function): The function that retrieves data to be processed and uploaded.
-    Returns:
-        None
-    This function takes a provided function, calls it to obtain data, and then converts the data into
-    an Arrow Table. The Arrow Table is serialized into Parquet format and uploaded to an Azure Blob
-    Storage container specified in the function. The function's name is used as the blob name.
-    Example:
-        Consider the function "top_scorers". Calling "to_blob(top_scorers)" will process the output
-        of "top_scorers", convert it to Parquet format, and upload it to Azure Blob Storage.
-        '''
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError(f"Expected a DataFrame, got {type(df)}")
 
-    file_name = func.__name__
-    func = func()
+        print(f"File name is: {file_name}")
 
+        # Convert DataFrame to Arrow Table
+        table = pa.Table.from_pandas(df)
 
-    # Convert DataFrame to Arrow Table
-    table = pa.Table.from_pandas(func)
+        # Write table to Parquet format
+        parquet_buffer = pa.BufferOutputStream()
+        pq.write_table(table, parquet_buffer)
 
-    parquet_buffer = BytesIO()
-    pq.write_table(table, parquet_buffer)
+        s3_file = f"{file_name}.parquet"
 
-    connection_string = 'Insert your blob storage connection key here'
-    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+        print("Getting AWS credentials")
+        session = boto3.Session(profile_name='srinivasvkumar')
+        credentials = session.get_credentials()
 
-    container_name = "testtech"
-    blob_name = f"{file_name}.parquet"
-    container_client = blob_service_client.get_container_client(container_name)
+        print("Credentials obtained")
+        print(f"AWS_ACCESS_KEY_ID = {credentials.access_key}")
+        print(f"AWS_SECRET_ACCESS_KEY = {credentials.secret_key}")
+        print(f"AWS_SESSION_TOKEN = {credentials.token}")
 
-    blob_client = container_client.get_blob_client(blob_name)
-    blob_client.upload_blob(parquet_buffer.getvalue(), overwrite=True)
-    print(f"{blob_name} successfully updated")
+        s3 = session.client('s3')
+
+        # Upload the Parquet data directly from the buffer
+        s3.upload_fileobj(pa.BufferReader(
+            parquet_buffer.getvalue()), 'srinivasepl', s3_file)
+        print(f"File uploaded to S3: {s3_file}")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
-for items in functions:
-    to_blob(items)
+# Assuming 'functions' is a list of functions returning DataFrames
+for func in functions:
+    to_blob(func)
