@@ -47,8 +47,7 @@ def to_blob(func):
         s3 = session.client('s3')
 
         # Upload the Parquet data directly from the buffer
-        s3.upload_fileobj(pa.BufferReader(
-            parquet_buffer.getvalue()), 'srinivasepl', s3_file)
+       # s3.upload_fileobj(pa.BufferReader(parquet_buffer.getvalue()), 'srinivasepl', s3_file)
         print(f"File uploaded to S3: {s3_file}")
 
     except Exception as e:
