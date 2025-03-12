@@ -7,7 +7,7 @@ import os
 
 load_dotenv('.env')
 
-functions = [league_table, top_scorers, detail_top, player_table,
+functions = [league_table, detail_top, player_table,
              all_time_table, all_time_winner_club, top_scorers_seasons, goals_per_season]
 
 print(os.getcwd())  # Check current working directory
@@ -29,7 +29,7 @@ for fun in functions:
     result_df = fun()  # Call the function to get the DataFrame
     result_df.to_sql(function_name, con=conn, if_exists='replace', index=False)
     print(f'Pushed data for {function_name}')
-    query = 'SELECT * FROM league_table;'
+    query = f"SELECT * FROM {function_name};"
     df = pd.read_sql(query, db)
 
 # Show the results
